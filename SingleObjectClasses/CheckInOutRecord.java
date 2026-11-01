@@ -1,75 +1,40 @@
 package SingleObjectClasses;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.*;
+import java.util.Stack;
 
+/**
+ * Caretaker of the Memento pattern. Before every check-in or check-out of one
+ * employee, the shift's state is saved here, so the last actions can be undone
+ * in reverse order.
+ */
 public class CheckInOutRecord {
 
-	private Employee employee;
-	private List<Shift> shifts;
-	private Stack<ShiftMemento> shiftHistory;
+	private final Employee employee;
+	private final Stack<Shift> changedShifts = new Stack<>();
+	private final Stack<ShiftMemento> shiftHistory = new Stack<>();
 
 	public CheckInOutRecord(Employee employee) {
 		this.employee = employee;
-		this.shifts = new ArrayList<>();
-		this.shiftHistory = new Stack<>();
 	}
 
-	public void startShift() {
-		Shift shift = new Shift();
-		shift.setEmployee(employee);
-		shift.startShift();
-		shifts.add(shift);
+	// Save the shift's state before it changes
+	public void save(Shift shift) {
+		changedShifts.push(shift);
 		shiftHistory.push(shift.saveToMemento());
 	}
 
-	public void endShift() {
-		if (shifts.size() > 0) {
-			Shift currentShift = shifts.get(shifts.size() - 1);
-			if (currentShift.getEndDateTime() == null) {
-				currentShift.endShift();
-				shiftHistory.push(currentShift.saveToMemento());
-			} else {
-				System.out.println("No active shift to end.");
-			}
-		} else {
-			System.out.println("No shift to end.");
-		}
+	public boolean canUndo() {
+		return !shiftHistory.isEmpty();
 	}
 
-	public void undoLastShift() {
-		if (!shiftHistory.isEmpty()) {
-			ShiftMemento memento = shiftHistory.pop();
-			Shift shift = shifts.get(shifts.size() - 1);
-			shift.restoreFromMemento(memento);
-			if (shift.getEndDateTime() != null) {
-				shifts.remove(shifts.size() - 1);
-			}
-		} else {
-			System.out.println("No shift to undo.");
+	// Restores the last saved state and returns the shift that was restored
+	public Shift undo() {
+		if (shiftHistory.isEmpty()) {
+			return null;
 		}
-	}
-
-	public void printShiftDetails() {
-		System.out.println("Shifts for employee: " + employee.toString());
-		for (Shift shift : shifts) {
-			System.out.println("Shift ID: " + shift.getId());
-			System.out.println("Start Time: " + formatDateTime(shift.getStartDateTime()));
-			System.out.println("End Time: " + formatDateTime(shift.getEndDateTime()));
-			System.out.println("Duration: " + shift.getShiftDuration());
-			System.out.println("--------------------------------");
-		}
-	}
-
-	// Format LocalDateTime to a readable string
-	private String formatDateTime(LocalDateTime dateTime) {
-		if (dateTime == null)
-			return "N/A";
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		return dateTime.format(formatter);
+		Shift shift = changedShifts.pop();
+		shift.restoreFromMemento(shiftHistory.pop());
+		return shift;
 	}
 
 	public Employee getEmployee() {

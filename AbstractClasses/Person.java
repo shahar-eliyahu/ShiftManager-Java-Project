@@ -44,4 +44,8 @@ public abstract class Person {
 		return BDay;
 	}
 
+	public void setBDay(Date bDay) {
+		this.BDay = bDay;
+	}
+
 }

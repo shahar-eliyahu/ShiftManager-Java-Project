@@ -55,40 +55,56 @@ public class ShiftManagementSystem {
 			System.out.println("Main Menu:");
 			System.out.println("1. Check In");
 			System.out.println("2. Check Out");
-			System.out.println("3. Print Shifts");
+			System.out.println("3. Undo Last Check-In/Out");
+			System.out.println("4. Print Shifts");
 			if (loggedInEmployee != null && loggedInEmployee.getRank() != Rank.WORKER) {
-				System.out.println("4. Manage Shifts");
-				System.out.println("5. Manage Employees");
+				System.out.println("5. Manage Shifts");
+				System.out.println("6. Manage Employees");
 			}
 			System.out.println("0. Log Out");
 			System.out.println("-1. Shut Down System");
 			System.out.print("Enter your choice: ");
 
 			int choice = IFunctionsLab.IntegerChoiceRange(-1,
-					(loggedInEmployee != null && loggedInEmployee.getRank() == Rank.WORKER) ? 3 : 5);
+					(loggedInEmployee != null && loggedInEmployee.getRank() == Rank.WORKER) ? 4 : 6);
 
 			switch (choice) {
 			case 1:
-				shiftManager.checkIn(loggedInEmployee);
+				try {
+					shiftManager.checkIn(loggedInEmployee);
+				} catch (IllegalStateException e) {
+					System.out.println(e.getMessage());
+				}
 				break;
 			case 2:
-				shiftManager.checkOut(loggedInEmployee);
+				try {
+					shiftManager.checkOut(loggedInEmployee);
+				} catch (IllegalStateException e) {
+					System.out.println(e.getMessage());
+				}
 				break;
 			case 3:
+				try {
+					System.out.println(shiftManager.undoLastCheckInOut(loggedInEmployee));
+				} catch (IllegalStateException e) {
+					System.out.println(e.getMessage());
+				}
+				break;
+			case 4:
 				if (shiftManager.hasShifts()) {
 					printShiftsMenu();
 				} else {
 					System.out.println("No shifts available in the system.");
 				}
 				break;
-			case 4:
+			case 5:
 				if (loggedInEmployee != null && loggedInEmployee.getRank() != Rank.WORKER) {
 					manageShiftsMenu();
 				} else {
 					System.out.println("Invalid choice. Please try again.");
 				}
 				break;
-			case 5:
+			case 6:
 				if (loggedInEmployee != null && loggedInEmployee.getRank() != Rank.WORKER) {
 					manageEmployeesMenu();
 				} else {
@@ -97,6 +113,7 @@ public class ShiftManagementSystem {
 				break;
 			case 0:
 				loggedIn = false;
+				employeeDataBase.logOut();
 				System.out.println("Logged out successfully.");
 				break;
 			case -1:
@@ -291,9 +308,7 @@ public class ShiftManagementSystem {
 			shiftManager.searchShiftsByDate(date);
 			break;
 		case 2:
-			for (int i = 0; i < Shift.counter; i++) {
-				System.out.println("Shift ID:" + i);
-			}
+			shiftManager.printShifts();
 			System.out.println("Enter Shift ID: ");
 			int shiftId = IFunctionsLab.IntegerChoiceRange(0, Shift.counter - 1);
 			shiftManager.searchShiftsById(shiftId);

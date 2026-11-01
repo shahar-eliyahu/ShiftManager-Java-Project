@@ -1,5 +1,11 @@
 package SingleObjectClasses;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import AbstractClasses.Person;
 import Enums.Rank;
 import Interfaces.Observer;
@@ -8,22 +14,27 @@ public class Employee extends Person implements Observer {
 	private String role;
 	private Rank rank;
 	private String password;
-	private String user;
+	// Messages received as an observer of the shift manager
+	private final List<String> notifications = new ArrayList<>();
 
 	public Employee(String id, String FName, String LName, Date date, String role, Rank rank) {
 		super(id, FName, LName, date);
 		this.rank = rank;
 		this.role = role;
 		this.password = id;
-		this.user = FName;
 	}
 
 	public String getPassword() {
 		return password;
 	}
 
+	// The username is always the employee's current first name
 	public String getUser() {
-		return user;
+		return getFirstName();
+	}
+
+	public List<String> getNotifications() {
+		return Collections.unmodifiableList(notifications);
 	}
 
 	@Override
@@ -50,6 +61,8 @@ public class Employee extends Person implements Observer {
 
 	@Override
 	public void update(String message) {
+		String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+		notifications.add(time + "  " + message);
 		System.out.println("Notification for " + getFirstName() + " " + getLastName() + ": " + message);
 	}
 }

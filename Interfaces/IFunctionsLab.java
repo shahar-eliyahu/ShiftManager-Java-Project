@@ -1,6 +1,10 @@
 package Interfaces;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Scanner;
+
+import SingleObjectClasses.Date;
 
 public interface IFunctionsLab {
 	public static Scanner scan = new Scanner(System.in);
@@ -15,29 +19,33 @@ public interface IFunctionsLab {
 	}
 
 	public static String inputId() {
-		String id;
 		System.out.println("Enter ID [9 digits]:");
-		do {
-			id = Integer.toString(checkInputStringToIntNegetive());
-			System.out.println((id.length() != 9) ? "Invalid ID,try again" : "Good.");
-		} while (id.length() != 9);
-		return id;
+		return nineDigitInput("Invalid ID, try again");
 	}
 
 	public static String inputPass() {
-		String pass;
-		System.out.println("Enter ID [9 digits]:");
-		do {
-			pass = Integer.toString(checkInputStringToIntNegetive());
-			System.out.println((pass.length() != 9) ? "Invalid ID,try again" : "Good.");
-		} while (pass.length() != 9);
-		return pass;
+		System.out.println("Enter password [9 digits]:");
+		return nineDigitInput("Invalid password, try again");
 	}
 
-	public static int dayInput() {
-		System.out.println("Enter Day [1 - 31]:");
-		int day = IntegerChoiceRange(1, 31);
-		return day;
+	// Reads the value as text so IDs that start with 0 keep their leading zeros
+	private static String nineDigitInput(String errorMessage) {
+		String value;
+		do {
+			value = scan.nextLine().trim();
+			System.out.println(isValidId(value) ? "Good." : errorMessage);
+		} while (!isValidId(value));
+		return value;
+	}
+
+	public static boolean isValidId(String value) {
+		return value != null && value.matches("^\\d{9}$");
+	}
+
+	public static int dayInput(int year, int month) {
+		int lastDay = YearMonth.of(year, month).lengthOfMonth();
+		System.out.println("Enter Day [1 - " + lastDay + "]:");
+		return IntegerChoiceRange(1, lastDay);
 	}
 
 	public static int monthInput() {
@@ -46,28 +54,43 @@ public interface IFunctionsLab {
 		return month;
 	}
 
+	// Birth years
 	public static int yearInput() {
-		System.out.println("Enter Year [1950 - 2024]:");
-		int year = IntegerChoiceRange(1950, 2024);
-		return year;
+		int currentYear = LocalDate.now().getYear();
+		System.out.println("Enter Year [1950 - " + currentYear + "]:");
+		return IntegerChoiceRange(1950, currentYear);
+	}
+
+	// Shift years: last year up to two years ahead
+	public static int shiftYearInput() {
+		int currentYear = LocalDate.now().getYear();
+		System.out.println("Enter Year [" + (currentYear - 1) + " - " + (currentYear + 2) + "]:");
+		return IntegerChoiceRange(currentYear - 1, currentYear + 2);
 	}
 
 	public static int hourInput() {
-		System.out.println("Enter hour [00 - 23]:");
+		System.out.println("Enter hour [0 - 23]:");
 		int hour = IntegerChoiceRange(0, 23);
 		return hour;
 	}
 
 	public static int minuteInput() {
-		System.out.println("Enter minute [0 - 60]:");
-		int minute = IntegerChoiceRange(0, 60);
+		System.out.println("Enter minute [0 - 59]:");
+		int minute = IntegerChoiceRange(0, 59);
 		return minute;
 	}
 
 	public static int secondsInput() {
-		System.out.println("Enter seconds [0 - 60]:");
-		int seconds = IntegerChoiceRange(0, 60);
+		System.out.println("Enter seconds [0 - 59]:");
+		int seconds = IntegerChoiceRange(0, 59);
 		return seconds;
+	}
+
+	public static Date birthDateInput() {
+		int year = yearInput();
+		int month = monthInput();
+		int day = dayInput(year, month);
+		return new Date(day, month, year);
 	}
 
 	public static String[] DateToStringInput() {
@@ -77,39 +100,21 @@ public interface IFunctionsLab {
 	}
 
 	public static String formatDate() {
-		int year = yearInput();
+		int year = shiftYearInput();
 		int month = monthInput();
-		int day = dayInput();
+		int day = dayInput(year, month);
 		return String.format("%04d-%02d-%02d", year, month, day); // Ensure leading zeros
 	}
 
 	public static String formatTime() {
-		int year = yearInput();
+		int year = shiftYearInput();
 		int month = monthInput();
-		int day = dayInput();
+		int day = dayInput(year, month);
 		int hour = hourInput();
 		int minute = minuteInput();
 		int seconds = secondsInput();
 		return String.format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, seconds); // Ensure
 																										// leading zeros
-	}
-
-	public static int checkInputStringToIntNegetive() {
-		boolean success = false;
-		int num = 0;
-		while (!success) {
-			try {
-				String choiceText = scan.nextLine();
-				num = Integer.parseInt(choiceText);
-				success = true;
-			} catch (Exception inputTextException) {
-				System.out.println("You should type a number!");
-			}
-		}
-		if (num < 0) {
-			num *= (-1);
-		}
-		return num;
 	}
 
 	public static int checkInputStringToInt() {
@@ -118,9 +123,9 @@ public interface IFunctionsLab {
 		while (!success) {
 			try {
 				String choiceText = scan.nextLine();
-				num = Integer.parseInt(choiceText);
+				num = Integer.parseInt(choiceText.trim());
 				success = true;
-			} catch (Exception inputTextException) {
+			} catch (NumberFormatException inputTextException) {
 				System.out.println("You should type a number!");
 			}
 		}
@@ -140,13 +145,16 @@ public interface IFunctionsLab {
 	public static String stringInput() {
 		String str;
 		do {
-			str = scan.nextLine();
+			str = scan.nextLine().trim();
+			if (!isValidAlphabetString(str)) {
+				System.out.println("Use English letters only, try again:");
+			}
 		} while (!isValidAlphabetString(str));
 		return str;
 	}
 
-	private static boolean isValidAlphabetString(String input) {
+	public static boolean isValidAlphabetString(String input) {
 		// Check if the input contains only alphabets
-		return input.matches("^[a-zA-Z]+$");
+		return input != null && input.matches("^[a-zA-Z]+$");
 	}
 }

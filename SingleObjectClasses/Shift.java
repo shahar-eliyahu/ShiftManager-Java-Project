@@ -80,6 +80,25 @@ public class Shift {
 		}
 	}
 
+	// Not scheduled (no times yet), Scheduled (starts later), In progress,
+	// Ongoing (checked in, not checked out) or Completed
+	public String getStatus() {
+		LocalDateTime now = LocalDateTime.now();
+		if (startDateTime == null) {
+			return "Not scheduled";
+		}
+		if (endDateTime == null) {
+			return "Ongoing";
+		}
+		if (startDateTime.isAfter(now)) {
+			return "Scheduled";
+		}
+		if (endDateTime.isAfter(now)) {
+			return "In progress";
+		}
+		return "Completed";
+	}
+
 	public ShiftMemento saveToMemento() {
 		return new ShiftMemento(startDateTime, endDateTime);
 	}
@@ -91,23 +110,9 @@ public class Shift {
 
 	@Override
 	public String toString() {
-		String startStr = formatDateTime(startDateTime);
-		String endStr = formatDateTime(endDateTime);
-		String durationStr = getShiftDuration();
-
-		if (startDateTime == null) {
-			return "Shift [ShiftID=" + ShiftID + ", Start=N/A" + ", End=N/A" + ", Duration=N/A" + ", Employee="
-					+ (employee != null ? employee.getFirstName() + " " + employee.getLastName() : "None")
-					+ ", Status=Not started]";
-		} else if (endDateTime == null) {
-			return "Shift [ShiftID=" + ShiftID + ", Start=" + startStr + ", End=N/A" + ", Duration=N/A" + ", Employee="
-					+ (employee != null ? employee.getFirstName() + " " + employee.getLastName() : "None")
-					+ ", Status=Ongoing]";
-		} else {
-			return "Shift [ShiftID=" + ShiftID + ", Start=" + startStr + ", End=" + endStr + ", Duration=" + durationStr
-					+ ", Employee="
-					+ (employee != null ? employee.getFirstName() + " " + employee.getLastName() : "None")
-					+ ", Status=Completed]";
-		}
+		return "Shift [ShiftID=" + ShiftID + ", Start=" + formatDateTime(startDateTime) + ", End="
+				+ formatDateTime(endDateTime) + ", Duration=" + getShiftDuration() + ", Employee="
+				+ (employee != null ? employee.getFirstName() + " " + employee.getLastName() : "None") + ", Status="
+				+ getStatus() + "]";
 	}
 }
